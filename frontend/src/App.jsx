@@ -3,6 +3,7 @@ import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 
 const API_BASE = import.meta.env.VITE_API_BASE || ''
+const APP_STATUS = import.meta.env.VITE_APP_STATUS || 'Unknown Mode'
 
 function useExpenses() {
   const [expenses, setExpenses] = useState([])
@@ -231,6 +232,9 @@ function App() {
   return (
     <div className="page">
       <NavBar />
+      <div className="env-status" role="status" aria-live="polite">
+        Mode: {APP_STATUS}
+      </div>
       <main>
         <Routes>
           <Route path="/" element={<HomePage expenses={expenses} add={add} remove={remove} loading={loading} />} />

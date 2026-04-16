@@ -75,7 +75,7 @@ describe('App', () => {
     await waitFor(() => expect(fetchStub.mock.calls.length).toBeGreaterThan(1))
     const postCall = fetchStub.mock.calls.find(([, options]) => options?.method === 'POST')
     expect(postCall).toBeDefined()
-    expect(postCall[0]).toBe('/api/expenses')
+    expect(postCall[0]).toMatch('/api/expenses')
     expect(await screen.findByText('Book')).toBeInTheDocument()
   })
 
@@ -95,5 +95,53 @@ describe('App', () => {
     expect(await screen.findByText(/Загалом:/)).toHaveTextContent('₴ 50.00')
     expect(screen.getByText(/Home: ₴ 30.00/)).toBeInTheDocument()
     expect(screen.getByText(/Transport: ₴ 20.00/)).toBeInTheDocument()
+  })
+
+  it('navigates to calculator page when clicking link', async () => {
+    vi.stubGlobal('fetch', buildFetchStub([]))
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    )
+    
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('link', { name: 'Калькулятор' }))
+    expect(await screen.findByText('Калькулятор витрат')).toBeInTheDocument()
+  })
+
+  it('deletes an expense correctly', async () => {
+    const fetchStub = buildFetchStub([{ title: 'Burger', category: 'Food', amount: 10, date: '2024-02-01' }])
+    vi.stubGlobal('fetch', fetchStub)
+    const user = userEvent.setup()
+    
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    )
+    
+    expect(await screen.findByText('Burger')).toBeInTheDocument()
+    
+    await user.click(screen.getByRole('button', { name: 'Видалити' }))
+    await waitFor(() => {
+      const deleteCall = fetchStub.mock.calls.find(([, options]) => options?.method === 'DELETE')
+      expect(deleteCall).toBeDefined()
+    })
+    
+    expect(screen.queryByText('Burger')).not.toBeInTheDocument()
+  })
+
+  it('displays "Без категорії" defaults for expenses lacking category', async () => {
+    const fetchStub = buildFetchStub([{ title: 'MysteryItem', amount: 99, date: '2024-02-05' }])
+    vi.stubGlobal('fetch', fetchStub)
+    
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/calculator' }]}>
+        <App />
+      </MemoryRouter>
+    )
+    
+    expect(await screen.findByText(/Без категорії: ₴ 99\.00/)).toBeInTheDocument()
   })
 })

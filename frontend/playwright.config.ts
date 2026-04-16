@@ -20,6 +20,5 @@ export default defineConfig({
     command: 'npm run dev -- --host --port 4173',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
-    cwd: __dirname,
   },
 })
